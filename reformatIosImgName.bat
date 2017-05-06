@@ -1,0 +1,1 @@
+python3 reformatIosImgName.py
