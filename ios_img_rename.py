@@ -98,7 +98,7 @@ class App(Frame):
 
 		for file in target_files:
 			# get the portions we need
-			pattern_result = self.FILE_PATTERN.match(file)
+			pattern_result = App.FILE_PATTERN.match(file)
 			date_prefix = pattern_result.group(1)
 
 			# create our new names
