@@ -1,0 +1,1 @@
+python3 ios_img_rename.py
