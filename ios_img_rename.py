@@ -44,7 +44,7 @@ class App(Frame):
 		label = Label(self, text='Files to exclude:')
 		label.pack()
 
-		# List Frame - label + listbox + scrollbar
+		# List Frame - listbox + scrollbar
 		list_frame = Frame(self)
 		list_frame.pack(pady=5) # as tight as possible
 		scrollbar = Scrollbar(list_frame, orient='vertical')
