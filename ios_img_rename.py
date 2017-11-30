@@ -30,17 +30,17 @@ class App(Frame):
 
     def dir_selection(self) -> None:
         ''' Get the directory to run '''
-        initial_dir = None
+        self.desired_dir = None
 
         # load previous directory
         if path.exists(App.CONFIG_PATH):
             with open(App.CONFIG_PATH, 'rb') as fstream:
-                initial_dir = pickle.load(fstream)
+                self.desired_dir = pickle.load(fstream)
 
         # prompt for directory
         self.desired_dir = \
             filedialog.askdirectory(
-                initialdir=initial_dir, title='Please select a directory to check for')
+                initialdir=self.desired_dir, title='Please select a directory to check for')
 
         if not self.desired_dir:  # empty string
             messagebox.showinfo(
@@ -53,8 +53,6 @@ class App(Frame):
 
     def init_ui(self) -> None:
         ''' Get the UI up '''
-        target_dir = self.desired_dir
-
         self.parent.title('IOS Image Rename')
         self.pack()  # as tight as possible
 
@@ -66,20 +64,26 @@ class App(Frame):
         list_frame = Frame(self)
         list_frame.pack(pady=5)  # as tight as possible
         scrollbar = Scrollbar(list_frame, orient='vertical')
-        self.listnodes = listnodes = Listbox(list_frame, selectmode=EXTENDED,
-                                             yscrollcommand=scrollbar.set, width=40, height=15)  # width = #char, height = #lines
+        self.listnodes = listnodes = \
+            Listbox(list_frame, selectmode=EXTENDED,
+                    yscrollcommand=scrollbar.set, width=40, height=15)
+        # width = #char, height = #lines
         scrollbar.config(command=listnodes.yview)
 
         scrollbar.pack(side=RIGHT, fill='y')  # as long as needed
         listnodes.pack(side=LEFT, fill='y')  # as long as stated in constructor
 
         # Iterate though the directory
-        for file in os.listdir(target_dir):
-            if App.FILE_PATTERN.search(file):
-                listnodes.insert(END, file)
+        for dirpath, _, filenames in os.walk(self.desired_dir):
+            for filename in filenames:
+                if App.FILE_PATTERN.search(filename):
+                    full_path = path.join(dirpath, filename)
+                    listnodes.insert(END, path.relpath(
+                        full_path, self.desired_dir))
         if listnodes.size() == 0:
             messagebox.showwarning('No files',
-                                   'No matching files found in {0}.\nApp will be terminating'.format(target_dir))
+                                   'No matching files found in {0}.' +
+                                   '\nApp will be terminating'.format(self.desired_dir))
             exit(0)
 
         # Button Frame - Ok button
@@ -117,23 +121,26 @@ class App(Frame):
                           for idx in range(listnodes.size())])
         target_files = unselected - selected
 
-        for file in target_files:
+        for file_ in target_files:
+            dirname, filename = path.split(file_)
+
             # get the portions we need
-            pattern_result = App.FILE_PATTERN.match(file)
+            pattern_result = App.FILE_PATTERN.match(filename)
             date_prefix = pattern_result.group(1)
 
             # create our new names
             newdate_prefix = "{0}-{1}-{2}".format(
                 date_prefix[:4], date_prefix[4:6], date_prefix[6:])
-            new_name = os.path.join(
-                target_dir, newdate_prefix + pattern_result.group(2))
+            new_name = os.path.join(target_dir,
+                                    dirname, newdate_prefix + pattern_result.group(2))
 
             # rename
-            old_name = os.path.join(target_dir, file)
+            old_name = os.path.join(target_dir, file_)
             os.rename(old_name, new_name)
 
         messagebox.showinfo('Done',
-                            'Processing is completed!\n{0} file[s] renamed.'.format(len(target_files)))
+                            'Processing is completed!\n' +
+                            '{0} file[s] renamed.'.format(len(target_files)))
         self.parent.quit()
 
 
