@@ -82,7 +82,7 @@ class App(Frame):
                         full_path, self.desired_dir))
         if listnodes.size() == 0:
             messagebox.showwarning('No files',
-                                   'No matching files found in {0}.' +
+                                   'No matching files found in {0}.'
                                    '\nApp will be terminating'.format(self.desired_dir))
             exit(0)
 
